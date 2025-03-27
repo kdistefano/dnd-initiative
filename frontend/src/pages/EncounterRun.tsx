@@ -30,14 +30,6 @@ interface EncounterState {
   roundNumber: number;
 }
 
-interface RollResult {
-  d20Roll: number;
-  modifier: number;
-  total: number;
-  isAnimating: boolean;
-  currentRoll?: number;
-}
-
 export function EncounterRun() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();

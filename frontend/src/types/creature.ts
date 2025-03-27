@@ -7,11 +7,12 @@ export interface Creature {
   maxHp?: number;
   notes?: string;
   initiativeModifier: number;
-  str: number;
-  dex: number;
-  con: number;
-  int: number;
-  wis: number;
-  cha: number;
   isNonPlayer: boolean;
+  // Stats are only required for NPCs
+  str?: number;
+  dex?: number;
+  con?: number;
+  int?: number;
+  wis?: number;
+  cha?: number;
 } 
