@@ -4,9 +4,8 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import { config } from 'dotenv';
 import { UserModel } from './models/user';
-import { authenticateToken, authenticateSocket, generateToken } from './middleware/auth';
+import { authenticateSocket, generateToken } from './middleware/auth';
 import cookieParser from 'cookie-parser';
-import { v4 as uuidv4 } from 'uuid';
 import prisma from './lib/prisma';
 import path from 'path';
 
@@ -34,27 +33,6 @@ app.use(cookieParser());
 // Serve static files from the frontend build
 app.use(express.static(path.join(__dirname, '../../frontend/dist')));
 
-// Routes
-app.use('/api/migrate', migrateRouter);
-
-interface InitiativeEntry {
-  id: string;
-  name: string;
-  initiative: number;
-  isPlayer: boolean;
-  isCurrentTurn: boolean;
-}
-
-interface Encounter {
-  id: string;
-  name: string;
-  userId: number;
-  entries: InitiativeEntry[];
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 // Authentication endpoints
 app.post('/api/auth/register', async (req, res) => {
   try {
@@ -72,9 +50,9 @@ app.post('/api/auth/register', async (req, res) => {
     const user = await UserModel.create(username, password);
     const token = generateToken(user.id);
 
-    res.json({ token });
+    return res.json({ token });
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -97,9 +75,9 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     const token = generateToken(user.id);
-    res.json({ token });
+    return res.json({ token });
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -121,9 +99,9 @@ app.post('/api/encounters', async (req: any, res) => {
       }
     });
 
-    res.json(newEncounter);
+    return res.json(newEncounter);
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -133,9 +111,9 @@ app.get('/api/encounters', async (req: any, res) => {
       where: { userId: req.userId },
       orderBy: { updatedAt: 'desc' }
     });
-    res.json(encounters);
+    return res.json(encounters);
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -152,9 +130,9 @@ app.get('/api/encounters/:id', async (req: any, res) => {
       return res.status(404).json({ error: 'Encounter not found' });
     }
 
-    res.json(encounter);
+    return res.json(encounter);
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -174,9 +152,9 @@ app.put('/api/encounters/:id', async (req: any, res) => {
 
     // Emit update to all connected clients
     io.emit(`encounter:${req.params.id}`, encounter);
-    res.json(encounter);
+    return res.json(encounter);
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -188,9 +166,9 @@ app.delete('/api/encounters/:id', async (req: any, res) => {
         userId: req.userId
       }
     });
-    res.json({ message: 'Encounter deleted' });
+    return res.json({ message: 'Encounter deleted' });
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -216,7 +194,7 @@ io.on('connection', (socket) => {
 });
 
 // Add catch-all route to serve index.html for client-side routing
-app.get('*', (req, res) => {
+app.get('*', (_req, res) => {
   res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
 });
 
