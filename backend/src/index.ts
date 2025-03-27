@@ -31,7 +31,8 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Serve static files from the frontend build
-app.use(express.static(path.join(__dirname, '../../frontend/dist')));
+const frontendPath = path.join(__dirname, '..', '..', 'frontend', 'dist');
+app.use(express.static(frontendPath));
 
 // Authentication endpoints
 app.post('/api/auth/register', async (req, res) => {
@@ -195,7 +196,7 @@ io.on('connection', (socket) => {
 
 // Add catch-all route to serve index.html for client-side routing
 app.get('*', (_req, res) => {
-  res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
+  res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
 const PORT = process.env.PORT || 5050;
