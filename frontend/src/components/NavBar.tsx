@@ -1,5 +1,4 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import '../styles/NavBar.css';
 
 interface NavBarProps {
@@ -7,8 +6,6 @@ interface NavBarProps {
 }
 
 export function NavBar({ onLogout }: NavBarProps) {
-  const navigate = useNavigate();
-
   const handleLogout = () => {
     localStorage.removeItem('token');
     onLogout();

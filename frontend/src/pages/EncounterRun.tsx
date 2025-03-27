@@ -86,7 +86,6 @@ export function EncounterRun() {
 
     newSocket.on('connect', () => {
       console.log('Connected to socket server');
-      // Join the encounter room after connection
       newSocket.emit('joinEncounter', id);
     });
 
@@ -206,13 +205,12 @@ export function EncounterRun() {
   };
 
   const handleInitiativeChange = (entryId: string, value: string) => {
-    const initiative = parseInt(value);
-    if (!isNaN(initiative)) {
-      setPendingInitiatives(prev => ({
-        ...prev,
-        [entryId]: initiative
-      }));
-    }
+    const numValue = parseInt(value);
+    if (isNaN(numValue)) return;
+    setPendingInitiatives(prev => ({
+      ...prev,
+      [entryId]: numValue
+    }));
   };
 
   const rollD20 = () => {
@@ -220,21 +218,23 @@ export function EncounterRun() {
   };
 
   const animateRoll = async (entryId: string, d20Roll: number, modifier: number) => {
-    const animationSteps = 5;
-    const stepDuration = 50;
+    const total = d20Roll + modifier;
+    const steps = 10;
+    const delay = 50; // ms
 
-    for (let i = 0; i < animationSteps; i++) {
+    for (let i = 0; i < steps; i++) {
+      const currentRoll = Math.floor(Math.random() * 20) + 1;
       setRollResults(prev => ({
         ...prev,
         [entryId]: {
-          d20Roll: Math.floor(Math.random() * 20) + 1,
+          d20Roll,
           modifier,
-          total: 0,
+          total,
           isAnimating: true,
-          currentRoll: Math.floor(Math.random() * 20) + 1
-        } as RollResult
+          currentRoll
+        }
       }));
-      await new Promise(resolve => setTimeout(resolve, stepDuration));
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
 
     setRollResults(prev => ({
@@ -242,43 +242,21 @@ export function EncounterRun() {
       [entryId]: {
         d20Roll,
         modifier,
-        total: d20Roll + modifier,
+        total,
         isAnimating: false
-      } as RollResult
+      }
     }));
   };
 
   const handleRollForNPC = async (entry: InitiativeEntry) => {
-    const roll = rollD20();
-    const total = roll + entry.initiativeModifier;
+    const d20Roll = rollD20();
+    const total = d20Roll + entry.initiativeModifier;
+    await animateRoll(entry.id, d20Roll, entry.initiativeModifier);
     
-    await animateRoll(entry.id, roll, entry.initiativeModifier);
-    
-    // Update initiative immediately if in combat
-    if (!showInitiativeForm) {
-      const updatedEntry = {
-        ...entry,
-        initiative: total
-      };
-      handleUpdateEntry(updatedEntry);
-      
-      // Re-sort the entries
-      setState(prev => ({
-        ...prev,
-        entries: prev.entries
-          .map(e => e.id === entry.id ? updatedEntry : e)
-          .sort((a, b) => {
-            if (a.initiative === null) return 1;
-            if (b.initiative === null) return -1;
-            return (b.initiative || 0) - (a.initiative || 0);
-          })
-      }));
-    } else {
-      setPendingInitiatives(prev => ({
-        ...prev,
-        [entry.id]: total
-      }));
-    }
+    handleUpdateEntry({
+      ...entry,
+      initiative: total
+    });
   };
 
   const handleRollForAllNPCs = async () => {
@@ -335,124 +313,69 @@ export function EncounterRun() {
     }
   };
 
-  const handleAddCreature = async (e: React.FormEvent) => {
+  const handleAddCreature = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    try {
-      const token = localStorage.getItem('token');
-      
-      // If we're in combat, roll initiative for the new creature
-      let initiative: number | null = null;
-      if (!showInitiativeForm) {
-        const roll = rollD20();
-        initiative = roll + newCreature.initiativeModifier;
-        await animateRoll('new-creature', roll, newCreature.initiativeModifier);
-      }
+    if (!socket) return;
 
-      const response = await fetch(`http://localhost:5050/api/encounters/${id}/creatures`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...newCreature,
-          count: 1,
-          initiative: initiative,
-          isNewToRound: !showInitiativeForm
-        }),
-      });
+    const entry: InitiativeEntry = {
+      id: crypto.randomUUID(),
+      name: newCreature.name,
+      initiative: null,
+      isNonPlayer: true,
+      ac: newCreature.ac,
+      hp: newCreature.hp,
+      maxHp: newCreature.maxHp,
+      initiativeModifier: newCreature.initiativeModifier,
+      str: newCreature.str,
+      dex: newCreature.dex,
+      con: newCreature.con,
+      int: newCreature.int,
+      wis: newCreature.wis,
+      cha: newCreature.cha,
+    };
 
-      if (!response.ok) {
-        throw new Error('Failed to add creature');
-      }
-
-      const updatedEncounter = await response.json();
-      
-      // If we're in combat, add the creature at the end of the current round
-      if (!showInitiativeForm) {
-        const newEntry = updatedEncounter.entries.find(e => !state.entries.find(pe => pe.id === e.id));
-        if (newEntry) {
-          setActiveEntries(prev => [...prev, newEntry]);
-        }
-        setState(prev => ({
-          ...prev,
-          entries: updatedEncounter.entries
-        }));
-      } else {
-        setState(prev => ({ ...prev, entries: updatedEncounter.entries }));
-      }
-
-      setNewCreature({
-        name: '',
-        isNonPlayer: true,
-        ac: undefined,
-        hp: undefined,
-        maxHp: undefined,
-        initiativeModifier: 0,
-        str: 0,
-        dex: 0,
-        con: 0,
-        int: 0,
-        wis: 0,
-        cha: 0,
-      });
-    } catch (error) {
-      console.error('Error adding creature:', error);
-    }
+    socket.emit('addInitiative', entry);
+    setNewCreature({
+      name: '',
+      isNonPlayer: true,
+      ac: undefined,
+      hp: undefined,
+      maxHp: undefined,
+      initiativeModifier: 0,
+      str: 0,
+      dex: 0,
+      con: 0,
+      int: 0,
+      wis: 0,
+      cha: 0,
+    });
   };
 
-  const handleAddPlayer = async (e: React.FormEvent) => {
+  const handleAddPlayer = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5050/api/encounters/${id}/creatures`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: newPlayer.name,
-          count: 1,
-          ac: newPlayer.ac,
-          hp: newPlayer.hp,
-          maxHp: newPlayer.maxHp,
-          notes: newPlayer.notes,
-          isNonPlayer: false,
-          initiativeModifier: 0,
-          initiative: newPlayer.initiative,
-          str: 0,
-          dex: 0,
-          con: 0,
-          int: 0,
-          wis: 0,
-          cha: 0
-        }),
-      });
+    if (!socket) return;
 
-      if (!response.ok) {
-        throw new Error('Failed to add player');
-      }
+    const entry: InitiativeEntry = {
+      id: crypto.randomUUID(),
+      name: newPlayer.name,
+      initiative: newPlayer.initiative,
+      isNonPlayer: false,
+      ac: newPlayer.ac,
+      hp: newPlayer.hp,
+      maxHp: newPlayer.maxHp,
+      notes: newPlayer.notes,
+      initiativeModifier: 0,
+    };
 
-      const updatedEncounter = await response.json();
-      setState(prev => ({ 
-        ...prev,
-        entries: updatedEncounter.entries
-      }));
-      
-      setNewPlayer({
-        name: '',
-        initiative: 0,
-        ac: undefined,
-        hp: undefined,
-        maxHp: undefined,
-        notes: '',
-      });
-    } catch (error) {
-      console.error('Error adding player:', error);
-    }
+    socket.emit('addInitiative', entry);
+    setNewPlayer({
+      name: '',
+      initiative: 0,
+      ac: undefined,
+      hp: undefined,
+      maxHp: undefined,
+      notes: '',
+    });
   };
 
   const handleStartCombat = async () => {
@@ -518,24 +441,11 @@ export function EncounterRun() {
   };
 
   const handleSaveInitiative = async (entry: InitiativeEntry) => {
-    const updatedEntry = {
+    handleUpdateEntry({
       ...entry,
       initiative: editInitiativeValue
-    };
-    handleUpdateEntry(updatedEntry);
+    });
     setEditingInitiative(null);
-
-    // Re-sort the entries after updating initiative
-    setState(prev => ({
-      ...prev,
-      entries: prev.entries
-        .map(e => e.id === entry.id ? updatedEntry : e)
-        .sort((a, b) => {
-          if (a.initiative === null) return 1;
-          if (b.initiative === null) return -1;
-          return (b.initiative || 0) - (a.initiative || 0);
-        })
-    }));
   };
 
   const toggleEntryExpanded = (entryId: string) => {
@@ -551,38 +461,8 @@ export function EncounterRun() {
   };
 
   const handleRemoveCreature = async (entryId: string) => {
-    try {
-      const token = localStorage.getItem('token');
-      const updatedEntries = state.entries.filter(entry => entry.id !== entryId);
-      
-      const response = await fetch(`http://localhost:5050/api/encounters/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ entries: updatedEntries }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to remove creature');
-      }
-
-      const updatedEncounter = await response.json();
-      
-      // Update the main state
-      setState(prev => ({
-        ...prev,
-        entries: updatedEncounter.entries
-      }));
-
-      // If we removed the current turn's creature, move to the next turn
-      if (state.entries[state.currentTurn].id === entryId) {
-        handleNextTurn();
-      }
-    } catch (error) {
-      console.error('Error removing creature:', error);
-    }
+    if (!socket) return;
+    socket.emit('removeInitiative', entryId);
   };
 
   return (
