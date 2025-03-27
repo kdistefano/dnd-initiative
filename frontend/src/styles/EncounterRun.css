@@ -1,0 +1,272 @@
+.encounter-run-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.main-content {
+  display: flex;
+  gap: 20px;
+}
+
+.initiative-list-column {
+  flex: 2;
+  min-width: 0;
+}
+
+.controls-column {
+  flex: 1;
+  min-width: 300px;
+}
+
+.initiative-entry {
+  background: #f5f5f5;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.entry-header {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+}
+
+.initiative-value {
+  font-size: 1.2em;
+  font-weight: bold;
+  min-width: 40px;
+  text-align: center;
+  margin-right: 10px;
+  padding: 4px 8px;
+  background: #fff;
+  border: 2px solid #007bff;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.init-label {
+  font-size: 0.7em;
+  color: #666;
+  text-transform: uppercase;
+  font-weight: normal;
+}
+
+.init-number {
+  font-weight: bold;
+  line-height: 1;
+}
+
+.entry-name {
+  flex: 1;
+  font-weight: 500;
+}
+
+.entry-controls {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.entry-controls input {
+  width: 60px;
+  padding: 4px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.entry-controls button {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  background: #007bff;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.entry-controls button:hover {
+  background: #0056b3;
+}
+
+.current-turn {
+  border: 2px solid #28a745;
+}
+
+.entry-details {
+  padding: 15px;
+  background: #f8f9fa;
+  border-top: 1px solid #eee;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 0.8em;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.stat-value {
+  font-weight: 500;
+}
+
+.entry-notes {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+}
+
+.combat-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.next-turn-btn, .end-combat-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.next-turn-btn {
+  background: #28a745;
+  color: white;
+}
+
+.next-turn-btn:hover {
+  background: #218838;
+}
+
+.end-combat-btn {
+  background: #dc3545;
+  color: white;
+}
+
+.end-combat-btn:hover {
+  background: #c82333;
+}
+
+.add-entries-section {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.add-entries-section h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.add-entries-section form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.add-entries-section input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.add-entries-section button {
+  padding: 8px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.add-entries-section button:hover {
+  background: #218838;
+}
+
+.new-to-round::before {
+  content: "New";
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: #ffc107;
+  color: #000;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7em;
+  font-weight: bold;
+  z-index: 1;
+}
+
+.remove-creature-btn {
+  background: #dc3545 !important;
+  color: white;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.remove-creature-btn:hover {
+  background: #c82333 !important;
+}
+
+.round-indicator {
+  background: #007bff;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  font-weight: bold;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.turn-completed {
+  opacity: 0.6;
+  background: #e9ecef;
+}
+
+.turn-completed .entry-header {
+  background: #f8f9fa;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
+  }
+  
+  .controls-column {
+    order: -1;
+  }
+
+  .initiative-list-column {
+    max-width: 100%;
+  }
+} 
