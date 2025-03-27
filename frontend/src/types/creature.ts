@@ -1,6 +1,7 @@
 export interface Creature {
   id: string;
   name: string;
+  initiative?: number | null;
   ac?: number;
   hp?: number;
   maxHp?: number;

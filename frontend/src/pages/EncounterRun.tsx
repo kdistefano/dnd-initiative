@@ -50,7 +50,6 @@ export function EncounterRun() {
   });
   const [showInitiativeForm, setShowInitiativeForm] = useState(true);
   const [pendingInitiatives, setPendingInitiatives] = useState<Record<string, number>>({});
-  const [rollResults, setRollResults] = useState<Record<string, RollResult>>({});
   const [newCreature, setNewCreature] = useState({
     name: '',
     isNonPlayer: true,
@@ -76,7 +75,6 @@ export function EncounterRun() {
   const [editingInitiative, setEditingInitiative] = useState<string | null>(null);
   const [editInitiativeValue, setEditInitiativeValue] = useState<number>(0);
   const [expandedEntries, setExpandedEntries] = useState<Set<string>>(new Set());
-  const [activeEntries, setActiveEntries] = useState<InitiativeEntry[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -139,12 +137,6 @@ export function EncounterRun() {
       newSocket.close();
     };
   }, [id]);
-
-  useEffect(() => {
-    if (!showInitiativeForm) {
-      setActiveEntries(state.entries);
-    }
-  }, [state.entries, showInitiativeForm]);
 
   const handleUpdateEntry = (entry: InitiativeEntry) => {
     if (!socket) return;
@@ -217,100 +209,14 @@ export function EncounterRun() {
     return Math.floor(Math.random() * 20) + 1;
   };
 
-  const animateRoll = async (entryId: string, d20Roll: number, modifier: number) => {
-    const total = d20Roll + modifier;
-    const steps = 10;
-    const delay = 50; // ms
-
-    for (let i = 0; i < steps; i++) {
-      const currentRoll = Math.floor(Math.random() * 20) + 1;
-      setRollResults(prev => ({
-        ...prev,
-        [entryId]: {
-          d20Roll,
-          modifier,
-          total,
-          isAnimating: true,
-          currentRoll
-        }
-      }));
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-
-    setRollResults(prev => ({
-      ...prev,
-      [entryId]: {
-        d20Roll,
-        modifier,
-        total,
-        isAnimating: false
-      }
-    }));
-  };
-
   const handleRollForNPC = async (entry: InitiativeEntry) => {
     const d20Roll = rollD20();
     const total = d20Roll + entry.initiativeModifier;
-    await animateRoll(entry.id, d20Roll, entry.initiativeModifier);
     
     handleUpdateEntry({
       ...entry,
       initiative: total
     });
-  };
-
-  const handleRollForAllNPCs = async () => {
-    const newInitiatives = { ...pendingInitiatives };
-    const npcs = state.entries.filter(entry => entry.isNonPlayer);
-    
-    if (npcs.length === 0) return;
-
-    // Calculate all rolls first
-    const rolls = npcs.map(entry => {
-      const roll = rollD20();
-      const total = roll + entry.initiativeModifier;
-      return { entry, roll, total };
-    });
-
-    // Update initiatives
-    rolls.forEach(({ entry, total }) => {
-      newInitiatives[entry.id] = total;
-    });
-    setPendingInitiatives(newInitiatives);
-
-    // Animate all rolls
-    const animationPromises = rolls.map(({ entry, roll }) => 
-      animateRoll(entry.id, roll, entry.initiativeModifier)
-    );
-
-    try {
-      await Promise.all(animationPromises);
-
-      // If we're in combat, update the initiatives in the backend
-      if (!showInitiativeForm) {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:5050/api/encounters/${id}/initiatives`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ initiatives: newInitiatives }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to update initiatives');
-        }
-
-        const updatedEncounter = await response.json();
-        setState(prev => ({
-          ...prev,
-          entries: updatedEncounter.entries
-        }));
-      }
-    } catch (error) {
-      console.error('Error in roll for all NPCs:', error);
-    }
   };
 
   const handleAddCreature = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -377,63 +283,6 @@ export function EncounterRun() {
       notes: '',
     });
   };
-
-  const handleStartCombat = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5050/api/encounters/${id}/activate`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to activate encounter');
-      }
-
-      const updatedEntries = state.entries.map(entry => ({
-        ...entry,
-        initiative: pendingInitiatives[entry.id] ?? null
-      }));
-
-      // Update initiatives in the backend
-      const initiativeResponse = await fetch(`http://localhost:5050/api/encounters/${id}/initiatives`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ initiatives: pendingInitiatives }),
-      });
-
-      if (!initiativeResponse.ok) {
-        throw new Error('Failed to update initiatives');
-      }
-
-      // Update local state with sorted entries
-      const sortedEntries = updatedEntries.sort((a, b) => {
-        if (a.initiative === null) return 1;
-        if (b.initiative === null) return -1;
-        return (b.initiative || 0) - (a.initiative || 0);
-      });
-
-      setState(prev => ({
-        ...prev,
-        entries: sortedEntries,
-        currentTurn: 0
-      }));
-      setActiveEntries(sortedEntries);
-      setShowInitiativeForm(false);
-      setPendingInitiatives({});
-    } catch (error) {
-      console.error('Error starting combat:', error);
-    }
-  };
-
-  const allInitiativesSet = state.entries.every(entry => 
-    entry.initiative !== null || pendingInitiatives[entry.id] !== undefined
-  );
 
   const handleEditInitiative = (entry: InitiativeEntry) => {
     setEditingInitiative(entry.id);
