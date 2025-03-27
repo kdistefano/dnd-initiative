@@ -17,13 +17,18 @@
   "builds": [
     {
       "src": "backend/package.json",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "buildCommand": "npm run build",
+        "outputDirectory": "dist"
+      }
     },
     {
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist"
+        "buildCommand": "npm run build",
+        "outputDirectory": "dist"
       }
     }
   ]
