@@ -8,6 +8,7 @@ import { authenticateToken, authenticateSocket, generateToken } from './middlewa
 import cookieParser from 'cookie-parser';
 import { v4 as uuidv4 } from 'uuid';
 import prisma from './lib/prisma';
+import path from 'path';
 
 // Load environment variables
 config();
@@ -29,6 +30,9 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+
+// Serve static files from the frontend build
+app.use(express.static(path.join(__dirname, '../../frontend/dist')));
 
 // Routes
 app.use('/api/migrate', migrateRouter);
@@ -209,6 +213,11 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('Client disconnected');
   });
+});
+
+// Add catch-all route to serve index.html for client-side routing
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
 });
 
 const PORT = process.env.PORT || 5050;
