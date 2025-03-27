@@ -30,6 +30,9 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+// Routes
+app.use('/api/migrate', migrateRouter);
+
 interface InitiativeEntry {
   id: string;
   name: string;
