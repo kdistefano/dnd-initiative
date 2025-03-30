@@ -11,7 +11,10 @@
     },
     {
       "src": "backend/package.json",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "buildCommand": "npm run build"
+      }
     }
   ],
   "routes": [
@@ -20,8 +23,11 @@
       "dest": "backend/dist/index.js"
     },
     {
+      "handle": "filesystem"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/"
+      "dest": "/frontend/dist/index.html"
     }
   ]
 }
