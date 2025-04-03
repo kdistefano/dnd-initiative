@@ -84,7 +84,7 @@ export function EncounterList() {
   const handleStartEncounter = async (encounterId: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5050/api/encounters/${encounterId}/activate`, {
+      const response = await fetch(`/api/encounters/${encounterId}/activate`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

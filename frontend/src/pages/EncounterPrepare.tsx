@@ -25,7 +25,7 @@ export function EncounterPrepare({ token }: EncounterPrepareProps) {
 
     const fetchEncounter = async () => {
       try {
-        const response = await fetch(`http://localhost:5050/api/encounters/${id}`, {
+        const response = await fetch(`/api/encounters/${id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -55,7 +55,7 @@ export function EncounterPrepare({ token }: EncounterPrepareProps) {
     };
 
     try {
-      const response = await fetch(`http://localhost:5050/api/encounters/${id}/creatures`, {
+      const response = await fetch(`/api/encounters/${id}/creatures`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -88,7 +88,7 @@ export function EncounterPrepare({ token }: EncounterPrepareProps) {
     };
 
     try {
-      const response = await fetch(`http://localhost:5050/api/encounters/${id}/creatures`, {
+      const response = await fetch(`/api/encounters/${id}/creatures`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -114,7 +114,7 @@ export function EncounterPrepare({ token }: EncounterPrepareProps) {
 
   const handleRemoveCreature = async (creatureId: string) => {
     try {
-      const response = await fetch(`http://localhost:5050/api/encounters/${id}/creatures/${creatureId}`, {
+      const response = await fetch(`/api/encounters/${id}/creatures/${creatureId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

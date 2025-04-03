@@ -67,7 +67,7 @@ export function EncounterEdit() {
   const fetchEncounter = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5050/api/encounters/${id}`, {
+      const response = await fetch(`/api/encounters/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -89,7 +89,7 @@ export function EncounterEdit() {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5050/api/encounters/${id}/creatures`, {
+      const response = await fetch(`/api/encounters/${id}/creatures`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -130,7 +130,7 @@ export function EncounterEdit() {
     const updatedEntries = encounter.entries.filter(entry => entry.id !== creatureId);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5050/api/encounters/${id}`, {
+      const response = await fetch(`/api/encounters/${id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -155,7 +155,7 @@ export function EncounterEdit() {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5050/api/encounters/${id}/activate`, {
+      const response = await fetch(`/api/encounters/${id}/activate`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

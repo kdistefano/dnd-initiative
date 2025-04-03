@@ -18,7 +18,7 @@ export function Login({ onLogin }: LoginProps) {
 
     try {
       const endpoint = isRegistering ? '/api/auth/register' : '/api/auth/login';
-      const response = await fetch(`http://localhost:5050${endpoint}`, {
+      const response = await fetch(`${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

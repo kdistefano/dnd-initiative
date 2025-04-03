@@ -98,7 +98,7 @@ export function EncounterRun() {
     // Initialize state
     const fetchEncounter = async () => {
       try {
-        const response = await fetch(`http://localhost:5050/api/encounters/${id}`, {
+        const response = await fetch(`/api/encounters/${id}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
@@ -176,7 +176,7 @@ export function EncounterRun() {
   const handleEndEncounter = async () => {
     try {
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:5050/api/encounters/${id}/deactivate`, {
+      await fetch(`/api/encounters/${id}/deactivate`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
